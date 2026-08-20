@@ -1,0 +1,445 @@
+{
+  "id": "ZIT_Dataset_Workstation_Public_Template",
+  "revision": 1,
+  "last_node_id": 28,
+  "last_link_id": 47,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "ZITMasterPromptWorkstation",
+      "pos": [490, 420],
+      "size": [303.234375, 0],
+      "flags": { "collapsed": true },
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        { "name": "custom_character_override", "type": "STRING", "link": null },
+        { "name": "custom_clothing_override", "type": "STRING", "link": null },
+        { "name": "custom_scene_override", "type": "STRING", "link": null },
+        { "name": "rating_mode", "type": "COMBO", "widget": { "name": "rating_mode" }, "link": null },
+        { "name": "cohesion_equalizer", "type": "COMBO", "widget": { "name": "cohesion_equalizer" }, "link": null },
+        { "name": "character_anchor", "type": "COMBO", "widget": { "name": "character_anchor" }, "link": null },
+        { "name": "hair_state_mode", "type": "COMBO", "widget": { "name": "hair_state_mode" }, "link": null },
+        { "name": "wardrobe_level", "type": "COMBO", "widget": { "name": "wardrobe_level" }, "link": null },
+        { "name": "pose_action_mode", "type": "COMBO", "widget": { "name": "pose_action_mode" }, "link": null },
+        { "name": "material_skin_physics", "type": "COMBO", "widget": { "name": "material_skin_physics" }, "link": null },
+        { "name": "scene_environment", "type": "COMBO", "widget": { "name": "scene_environment" }, "link": null },
+        { "name": "director_camera_rig", "type": "COMBO", "widget": { "name": "director_camera_rig" }, "link": null },
+        { "name": "prompt_engine_format", "type": "COMBO", "widget": { "name": "prompt_engine_format" }, "link": null },
+        { "name": "chaos_entropy", "type": "INT", "widget": { "name": "chaos_entropy" }, "link": null },
+        { "name": "seed", "type": "INT", "widget": { "name": "seed" }, "link": null },
+        { "name": "inline_custom_subject", "type": "STRING", "widget": { "name": "inline_custom_subject" }, "link": null },
+        { "name": "auto_save_caption", "type": "BOOLEAN", "widget": { "name": "auto_save_caption" }, "link": null },
+        { "name": "caption_subfolder", "type": "STRING", "widget": { "name": "caption_subfolder" }, "link": null }
+      ],
+      "outputs": [
+        { "name": "character_prompt", "type": "STRING", "slot_index": 0, "links": null },
+        { "name": "scene_prompt", "type": "STRING", "slot_index": 1, "links": null },
+        { "name": "master_fused_prompt", "type": "STRING", "slot_index": 2, "links": [5] },
+        { "name": "dataset_caption_txt", "type": "STRING", "slot_index": 3, "links": [7] },
+        { "name": "saved_caption_path", "type": "STRING", "slot_index": 4, "links": null },
+        { "name": "negative_prompt", "type": "STRING", "slot_index": 5, "links": null },
+        { "name": "active_wardrobe_text", "type": "STRING", "slot_index": 6, "links": null },
+        { "name": "active_pose_text", "type": "STRING", "slot_index": 7, "links": null },
+        { "name": "active_scene_text", "type": "STRING", "slot_index": 8, "links": null },
+        { "name": "active_director_camera", "type": "STRING", "slot_index": 9, "links": null },
+        { "name": "telemetry_summary", "type": "STRING", "links": null }
+      ],
+      "properties": { "Node name for S&R": "ZITMasterPromptWorkstation" },
+      "widgets_values": [
+        "🎲 Stochastic Coin-Flip (Random NSFW / SFW)",
+        "🧠 Smart Context Equalizer (Matched Venue, Attire & Poses)",
+        "Default Character Anchor",
+        "🎲 Dynamic Stochastic Hair (Bedhead, Wet, Tousled, Styled)",
+        "🔞 Full Nudity (Anatomical Precision, Bare Realskin)",
+        "🎯 Tier 1: Identity Anchors (Close-Ups & 3D Head Angles)",
+        "🎲 Dynamic / Matched Physics",
+        "🎲 Dynamic Cinematics Matrix",
+        "Quentin Tarantino (Ultra Speed 40mm Punchy)",
+        "🎬 Natural Cinematic Prose (Flux / ZIT)",
+        85,
+        984732474124441,
+        "randomize",
+        50,
+        0,
+        "randomize"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "UNETLoader",
+      "pos": [1030, 410],
+      "size": [259.984375, 89.984375],
+      "flags": { "collapsed": false },
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        { "name": "unet_name", "type": "COMBO", "widget": { "name": "unet_name" }, "link": null },
+        { "name": "weight_dtype", "type": "COMBO", "widget": { "name": "weight_dtype" }, "link": null }
+      ],
+      "outputs": [{ "name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [1] }],
+      "properties": { "Node name for S&R": "UNETLoader" },
+      "widgets_values": ["z_image_turbo_bf16.safetensors", "default"]
+    },
+    {
+      "id": 6,
+      "type": "CLIPLoader",
+      "pos": [490, 1060],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip_name", "type": "COMBO", "widget": { "name": "clip_name" }, "link": null },
+        { "name": "type", "type": "COMBO", "widget": { "name": "type" }, "link": null },
+        { "name": "device", "type": "COMBO", "widget": { "name": "device" }, "link": null }
+      ],
+      "outputs": [{ "name": "CLIP", "type": "CLIP", "slot_index": 0, "links": [4, 6, 16, 31] }],
+      "properties": { "Node name for S&R": "CLIPLoader" },
+      "widgets_values": ["qwen_3_4b_fp8_mixed.safetensors", "lumina2", "default"]
+    },
+    {
+      "id": 7,
+      "type": "VAELoader",
+      "pos": [490, 1120],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 3,
+      "mode": 0,
+      "inputs": [{ "name": "vae_name", "type": "COMBO", "widget": { "name": "vae_name" }, "link": null }],
+      "outputs": [{ "name": "VAE", "type": "VAE", "slot_index": 0, "links": [13, 17, 32] }],
+      "properties": { "Node name for S&R": "VAELoader" },
+      "widgets_values": ["ae.safetensors"]
+    },
+    {
+      "id": 8,
+      "type": "CLIPTextEncode",
+      "pos": [500, 1370],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 4 },
+        { "name": "text", "type": "STRING", "widget": { "name": "text" }, "link": 5 }
+      ],
+      "outputs": [{ "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [9, 18, 33] }],
+      "properties": { "Node name for S&R": "CLIPTextEncode (Positive)" },
+      "widgets_values": [""]
+    },
+    {
+      "id": 9,
+      "type": "CLIPTextEncode",
+      "pos": [500, 1470],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 6 },
+        { "name": "text", "type": "STRING", "widget": { "name": "text" }, "link": 7 }
+      ],
+      "outputs": [{ "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [10, 19, 34] }],
+      "properties": { "Node name for S&R": "CLIPTextEncode (Negative)" },
+      "widgets_values": [""]
+    },
+    {
+      "id": 10,
+      "type": "EmptySD3LatentImage",
+      "pos": [490, 1000],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        { "name": "width", "type": "INT", "widget": { "name": "width" }, "link": null },
+        { "name": "height", "type": "INT", "widget": { "name": "height" }, "link": null },
+        { "name": "batch_size", "type": "INT", "widget": { "name": "batch_size" }, "link": null }
+      ],
+      "outputs": [{ "name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [11] }],
+      "properties": { "Node name for S&R": "EmptySD3LatentImage" },
+      "widgets_values": [1024, 1024, 1]
+    },
+    {
+      "id": 11,
+      "type": "KSampler",
+      "pos": [1350, 400],
+      "size": [279.984375, 509.984375],
+      "flags": { "collapsed": false },
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        { "name": "model", "type": "MODEL", "link": 8 },
+        { "name": "positive", "type": "CONDITIONING", "link": 9 },
+        { "name": "negative", "type": "CONDITIONING", "link": 10 },
+        { "name": "latent_image", "type": "LATENT", "link": 11 },
+        { "name": "seed", "type": "INT", "widget": { "name": "seed" }, "link": null },
+        { "name": "steps", "type": "INT", "widget": { "name": "steps" }, "link": null },
+        { "name": "cfg", "type": "FLOAT", "widget": { "name": "cfg" }, "link": null },
+        { "name": "sampler_name", "type": "COMBO", "widget": { "name": "sampler_name" }, "link": null },
+        { "name": "scheduler", "type": "COMBO", "widget": { "name": "scheduler" }, "link": null },
+        { "name": "denoise", "type": "FLOAT", "widget": { "name": "denoise" }, "link": null }
+      ],
+      "outputs": [{ "name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [12] }],
+      "properties": { "Node name for S&R": "Base KSampler" },
+      "widgets_values": [117187436353794, "randomize", 8, 1, "euler", "simple", 1]
+    },
+    {
+      "id": 12,
+      "type": "VAEDecode",
+      "pos": [490, 1180],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        { "name": "samples", "type": "LATENT", "link": 12 },
+        { "name": "vae", "type": "VAE", "link": 13 }
+      ],
+      "outputs": [{ "name": "IMAGE", "type": "IMAGE", "slot_index": 0, "links": [14] }],
+      "properties": { "Node name for S&R": "VAEDecode (Base)" },
+      "widgets_values": []
+    },
+    {
+      "id": 13,
+      "type": "UltralyticsDetectorProvider",
+      "pos": [1660, 410],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 5,
+      "mode": 0,
+      "inputs": [{ "name": "model_name", "type": "COMBO", "widget": { "name": "model_name" }, "link": null }],
+      "outputs": [{ "name": "BBOX_DETECTOR", "type": "BBOX_DETECTOR", "slot_index": 0, "links": [20] }],
+      "properties": { "Node name for S&R": "UltralyticsDetectorProvider" },
+      "widgets_values": ["bbox/face_yolov8n_v2.pt"]
+    },
+    {
+      "id": 14,
+      "type": "SAMLoader",
+      "pos": [1870, 410],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        { "name": "model_name", "type": "COMBO", "widget": { "name": "model_name" }, "link": null },
+        { "name": "device_mode", "type": "COMBO", "widget": { "name": "device_mode" }, "link": null }
+      ],
+      "outputs": [{ "name": "SAM_MODEL", "type": "SAM_MODEL", "slot_index": 0, "links": [21, 36] }],
+      "properties": { "Node name for S&R": "SAMLoader" },
+      "widgets_values": ["sam_vit_b_01ec64.pth", "AUTO"]
+    },
+    {
+      "id": 15,
+      "type": "FaceDetailer",
+      "pos": [1660, 450],
+      "size": [309.984375, 1379.984375],
+      "flags": { "collapsed": false },
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        { "name": "image", "type": "IMAGE", "link": 14 },
+        { "name": "model", "type": "MODEL", "link": 15 },
+        { "name": "clip", "type": "CLIP", "link": 16 },
+        { "name": "vae", "type": "VAE", "link": 17 },
+        { "name": "positive", "type": "CONDITIONING", "link": 18 },
+        { "name": "negative", "type": "CONDITIONING", "link": 19 },
+        { "name": "bbox_detector", "type": "BBOX_DETECTOR", "link": 20 },
+        { "name": "sam_model_opt", "type": "SAM_MODEL", "link": 21 }
+      ],
+      "outputs": [{ "name": "image", "type": "IMAGE", "slot_index": 0, "links": [29] }],
+      "title": "👑 Face Detailer (YOLOv8 Face)",
+      "properties": { "Node name for S&R": "FaceDetailer" },
+      "widgets_values": [
+        640, true, 896, 921721809972580, "randomize", 6, 1, "euler", "simple", 0.32, 5, true, true, 0.5, 10, 3, "center-1", 4, 0.93, 0, 0.7, "False", 10,
+        "high-fidelity macro photographic portrait, detailed facial structure, natural epidermal skin pores, subsurface dermal scattering, sharp focus",
+        1, false, 20, false, false
+      ],
+      "color": "#4a1525",
+      "bgcolor": "#2a0d17"
+    },
+    {
+      "id": 18,
+      "type": "SaveImage",
+      "pos": [2400, 410],
+      "size": [469.984375, 479.984375],
+      "flags": { "collapsed": false },
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        { "name": "images", "type": "IMAGE", "link": 43 },
+        { "name": "filename_prefix", "type": "STRING", "widget": { "name": "filename_prefix" }, "link": null }
+      ],
+      "outputs": [],
+      "title": "💾 Save Fully Rendered Image",
+      "properties": { "Node name for S&R": "SaveImage" },
+      "widgets_values": ["dataset_output/images/character"],
+      "color": "#153243",
+      "bgcolor": "#0d1e29"
+    },
+    {
+      "id": 19,
+      "type": "UltralyticsDetectorProvider",
+      "pos": [2100, 410],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 7,
+      "mode": 0,
+      "inputs": [{ "name": "model_name", "type": "COMBO", "widget": { "name": "model_name" }, "link": null }],
+      "outputs": [{ "name": "BBOX_DETECTOR", "type": "BBOX_DETECTOR", "slot_index": 0, "links": [35] }],
+      "properties": { "Node name for S&R": "UltralyticsDetectorProvider" },
+      "widgets_values": ["bbox/hand_yolov8s.pt"]
+    },
+    {
+      "id": 20,
+      "type": "FaceDetailer",
+      "pos": [2000, 490],
+      "size": [309.984375, 1379.984375],
+      "flags": { "collapsed": false },
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        { "name": "image", "type": "IMAGE", "link": 29 },
+        { "name": "model", "type": "MODEL", "link": 30 },
+        { "name": "clip", "type": "CLIP", "link": 31 },
+        { "name": "vae", "type": "VAE", "link": 32 },
+        { "name": "positive", "type": "CONDITIONING", "link": 33 },
+        { "name": "negative", "type": "CONDITIONING", "link": 34 },
+        { "name": "bbox_detector", "type": "BBOX_DETECTOR", "link": 35 },
+        { "name": "sam_model_opt", "type": "SAM_MODEL", "link": 36 }
+      ],
+      "outputs": [{ "name": "image", "type": "IMAGE", "slot_index": 0, "links": [43, 44] }],
+      "title": "🖐️ Hand Detailer (YOLOv8 Hand)",
+      "properties": { "Node name for S&R": "FaceDetailer" },
+      "widgets_values": [
+        512, true, 64, 23928998482325, "randomize", 6, 1, "euler", "simple", 0.28, 16, true, true, 0.4, 10, 2, "center-1", 0, 0.93, 0, 0.55, "False", 10,
+        "",
+        1, false, 20, false, false
+      ],
+      "color": "#3d260f",
+      "bgcolor": "#261809"
+    },
+    {
+      "id": 22,
+      "type": "RemoveBackgroundNode",
+      "pos": [2400, 930],
+      "size": [274.625, 0],
+      "flags": { "collapsed": true },
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        { "name": "image", "type": "IMAGE", "link": 44 },
+        { "name": "model", "type": "COMBO", "widget": { "name": "model" }, "link": null },
+        { "name": "background_color", "type": "COMBO", "widget": { "name": "background_color" }, "link": null },
+        { "name": "device", "type": "COMBO", "widget": { "name": "device" }, "link": null },
+        { "name": "update_model", "type": "BOOLEAN", "widget": { "name": "update_model" }, "link": null }
+      ],
+      "outputs": [
+        { "name": "image", "type": "IMAGE", "slot_index": 0, "links": null },
+        { "name": "mask", "type": "MASK", "slot_index": 1, "links": [45] }
+      ],
+      "title": "✂️ Background Mask Extractor (BiRefNet)",
+      "properties": { "Node name for S&R": "RemoveBackgroundNode" },
+      "widgets_values": ["BiRefNet", "transparency", "auto", false],
+      "color": "#1b4d3e",
+      "bgcolor": "#0d2b22"
+    },
+    {
+      "id": 24,
+      "type": "PerturbedAttentionGuidance",
+      "pos": [1030, 540],
+      "size": [259.984375, 0],
+      "flags": { "collapsed": true },
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        { "name": "model", "type": "MODEL", "link": 1 },
+        { "name": "scale", "type": "FLOAT", "widget": { "name": "scale" }, "link": null }
+      ],
+      "outputs": [{ "name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [8, 15, 30] }],
+      "title": "⚡ Perturbed Attention Guidance (PAG)",
+      "properties": { "Node name for S&R": "PerturbedAttentionGuidance" },
+      "widgets_values": [1.5],
+      "color": "#4a154b",
+      "bgcolor": "#2b0d2b"
+    },
+    {
+      "id": 26,
+      "type": "MaskToImage",
+      "pos": [2370, 970],
+      "size": [225, 0],
+      "flags": { "collapsed": true },
+      "order": 17,
+      "mode": 0,
+      "inputs": [{ "name": "mask", "type": "MASK", "link": 45 }],
+      "outputs": [{ "name": "IMAGE", "type": "IMAGE", "slot_index": 0, "links": [46] }],
+      "properties": { "Node name for S&R": "MaskToImage" },
+      "widgets_values": []
+    },
+    {
+      "id": 27,
+      "type": "SaveImage",
+      "pos": [2700, 950],
+      "size": [439.984375, 479.984375],
+      "flags": { "collapsed": false },
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        { "name": "images", "type": "IMAGE", "link": 46 },
+        { "name": "filename_prefix", "type": "STRING", "widget": { "name": "filename_prefix" }, "link": null }
+      ],
+      "outputs": [],
+      "title": "🔳 Save B&W Training Mask",
+      "properties": { "Node name for S&R": "SaveImage" },
+      "widgets_values": ["dataset_output/masks/character"],
+      "color": "#111111",
+      "bgcolor": "#000000"
+    }
+  ],
+  "links": [
+    [1, 2, 0, 24, 0, "MODEL"],
+    [4, 6, 0, 8, 0, "CLIP"],
+    [5, 1, 2, 8, 1, "STRING"],
+    [6, 6, 0, 9, 0, "CLIP"],
+    [7, 1, 3, 9, 1, "STRING"],
+    [8, 24, 0, 11, 0, "MODEL"],
+    [9, 8, 0, 11, 1, "CONDITIONING"],
+    [10, 9, 0, 11, 2, "CONDITIONING"],
+    [11, 10, 0, 11, 3, "LATENT"],
+    [12, 11, 0, 12, 0, "LATENT"],
+    [13, 7, 0, 12, 1, "VAE"],
+    [14, 12, 0, 15, 0, "IMAGE"],
+    [15, 24, 0, 15, 1, "MODEL"],
+    [16, 6, 0, 15, 2, "CLIP"],
+    [17, 7, 0, 15, 3, "VAE"],
+    [18, 8, 0, 15, 4, "CONDITIONING"],
+    [19, 9, 0, 15, 5, "CONDITIONING"],
+    [20, 13, 0, 15, 6, "BBOX_DETECTOR"],
+    [21, 14, 0, 15, 7, "SAM_MODEL"],
+    [29, 15, 0, 20, 0, "IMAGE"],
+    [30, 24, 0, 20, 1, "MODEL"],
+    [31, 6, 0, 20, 2, "CLIP"],
+    [32, 7, 0, 20, 3, "VAE"],
+    [33, 8, 0, 20, 4, "CONDITIONING"],
+    [34, 9, 0, 20, 5, "CONDITIONING"],
+    [35, 19, 0, 20, 6, "BBOX_DETECTOR"],
+    [36, 14, 0, 20, 7, "SAM_MODEL"],
+    [43, 20, 0, 18, 0, "IMAGE"],
+    [44, 20, 0, 22, 0, "IMAGE"],
+    [45, 22, 1, 26, 0, "MASK"],
+    [46, 26, 0, 27, 0, "IMAGE"]
+  ],
+  "groups": [
+    { "id": 1, "title": "👑 1. PROMPT & LATENT ENGINE", "bounding": [470, 360, 480, 880], "color": "#8b1538" },
+    { "id": 2, "title": "⚡ 2. MODEL GUIDANCE (PAG)", "bounding": [1010, 350, 300, 880], "color": "#754519" },
+    { "id": 3, "title": "🎨 3. BASE 1:1 CANVAS", "bounding": [1330, 350, 320, 880], "color": "#143d2b" },
+    { "id": 4, "title": "🖐️ 4. DUAL DETAILER CASCADE (FACE + HAND)", "bounding": [1650, 350, 690, 880], "color": "#4a2810" },
+    { "id": 5, "title": "📁 5. LORA DATASET EXPORT", "bounding": [2350, 350, 850, 1100], "color": "#153243" },
+    { "id": 6, "title": "☑️ Optional Manual Text Override", "bounding": [480, 1300, 460, 180], "color": "#3f789e" }
+  ],
+  "config": {},
+  "extra": {
+    "ds": { "scale": 1.0, "offset": [0, 0] }
+  },
+  "version": 0.4
+}
