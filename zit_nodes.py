@@ -8,7 +8,10 @@ import re
 import sqlite3
 import random
 from pathlib import Path
-import folder_paths
+try:
+    import folder_paths  # noqa: F401 — available inside ComfyUI runtime
+except ModuleNotFoundError:
+    folder_paths = None  # graceful fallback for standalone inspection
 
 try:
     from .zit_data import (
@@ -215,7 +218,7 @@ class ZITCharacterOverrideNode:
             "blurry", "low quality", "deformed", "extra limbs", "bad anatomy", 
             "mutated fingers", "poorly drawn hands", "missing fingers",
             "duplicate", "watermark", "signature", "anime", "cartoon", "3d render", "illustration",
-            "plastic skin", "oversaturated"
+            "plastic skin", "oversaturated", "airbrushed", "instagram filter", "heavy makeup", "contouring", "cinematic color grading", "dramatic shadows", "glossy skin"
         ]
         if negative_prompt_additions.strip():
             base_negatives.append(negative_prompt_additions.strip())
@@ -292,7 +295,7 @@ class VesperaCharacterEncoder:
         full_prompt = ", ".join(prompt_parts)
         full_prompt = re.sub(r',\s*,+', ',', full_prompt).strip(' ,')
 
-        negative = "blurry, low quality, deformed, extra limbs, bad anatomy, cartoon, anime, 3d render, plastic skin"
+        negative = "blurry, low quality, deformed, extra limbs, bad anatomy, cartoon, anime, 3d render, plastic skin, airbrushed, instagram filter, heavy makeup, contouring, cinematic color grading, dramatic shadows, glossy skin, plastic"
         return (full_prompt, negative)
 
 
@@ -751,6 +754,20 @@ class ZITMasterPromptWorkstation:
         def clean_slug(text: str) -> str:
             slug = re.sub(r'[^a-zA-Z0-9]', '_', text)
             return re.sub(r'_+', '_', slug).strip('_')
+
+        def extract_outfit_slug(attire_text: str) -> str:
+            clean = attire_text.strip()
+            patterns = [
+                r'^(?:wearing|dressed in|she is wearing|she is dressed in|a sultry in|a|an|the|in)\s+',
+                r'^(?:pair of|piece of|set of)\s+'
+            ]
+            for _ in range(3):
+                for pat in patterns:
+                    clean = re.sub(pat, '', clean, flags=re.IGNORECASE).strip()
+            words = clean.split()[:4]
+            title_words = [w.capitalize() for w in words if w.isalnum() or '-' in w]
+            slug = '_'.join(title_words)
+            return clean_slug(slug[:35]) if slug else 'Custom_Wardrobe'
         
         if "Random" in rating_mode or "Stochastic" in rating_mode or "Coin-Flip" in rating_mode:
             is_nsfw = rng.choice([True, False])
@@ -903,18 +920,34 @@ class ZITMasterPromptWorkstation:
                 round_num = ((seed // total_slots) % 5) + 1
                 slot_overall = seed % (total_slots * 5)
                 tier_prefix, sub_idx, cfg = all_tiers[seed % total_slots]
-                raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
-                slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
+                if tier_prefix == "T3" and custom_clothing_override.strip():
+                    slug_name = extract_outfit_slug(custom_clothing_override.strip())
+                else:
+                    raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
+                    slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
                 active_tier_tag = f"R{round_num}_{tier_prefix}_{sub_idx+1:02d}_{slug_name}"
             else:
                 tier_prefix, sub_idx, cfg = all_tiers[seed % total_slots]
-                raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
-                slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
+                if tier_prefix == "T3" and custom_clothing_override.strip():
+                    slug_name = extract_outfit_slug(custom_clothing_override.strip())
+                else:
+                    raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
+                    slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
                 active_tier_tag = f"{tier_prefix}_{sub_idx+1:02d}_{slug_name}"
 
             selected_pose = cfg['pose']
             selected_exp = cfg['expression']
             attire = custom_clothing_override.strip() or cfg['attire']
+            if tier_prefix == "T2":
+                # Tier 2 is strictly dedicated to Anatomy Ratios & Pure Realskin Nudity
+                attire = cfg['attire']
+            elif tier_prefix == "T1":
+                # Tier 1 is dedicated to Headshots & 3D Identity Anchors (Bare shoulders / Face focus)
+                attire = cfg['attire'] if not custom_clothing_override.strip() else custom_clothing_override.strip()
+            else:
+                # Tier 3 (Wardrobe Agnosticism) & Tier 4 (Spatial Awareness) utilize dynamic styling
+                attire = custom_clothing_override.strip() or cfg['attire']
+
             env_text = custom_scene_override.strip() or cfg['env']
             rig_key = cfg['rig']
             rig = DIRECTOR_RIG_CONFIGS.get(rig_key, DIRECTOR_RIG_CONFIGS["Denis Villeneuve (Alexa 65 Anamorphic 50mm)"]).copy()
@@ -944,7 +977,8 @@ class ZITMasterPromptWorkstation:
             cfg = matrix[slot_idx]
             selected_pose = cfg['pose']
             selected_exp = cfg['expression']
-            attire = custom_clothing_override.strip() or cfg['attire']
+            # Dedicated Anatomy Ratios & Pure Realskin Nudity
+            attire = cfg['attire']
             env_text = custom_scene_override.strip() or cfg['env']
             rig_key = cfg['rig']
             rig = DIRECTOR_RIG_CONFIGS.get(rig_key, DIRECTOR_RIG_CONFIGS["Denis Villeneuve (Alexa 65 Anamorphic 50mm)"]).copy()
@@ -964,8 +998,11 @@ class ZITMasterPromptWorkstation:
             rig_key = cfg['rig']
             rig = DIRECTOR_RIG_CONFIGS.get(rig_key, DIRECTOR_RIG_CONFIGS["Denis Villeneuve (Alexa 65 Anamorphic 50mm)"]).copy()
             selected_physics = cfg['physics']
-            raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
-            slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
+            if custom_clothing_override.strip():
+                slug_name = extract_outfit_slug(custom_clothing_override.strip())
+            else:
+                raw_name_match = re.search(r'\((.*?)\)', cfg['name'])
+                slug_name = clean_slug(raw_name_match.group(1)) if raw_name_match else clean_slug(cfg['name'])
             active_tier_tag = f"T3_{slot_idx+1:02d}_{slug_name}"
 
         elif "Tier 4" in pose_action_mode:
@@ -1053,16 +1090,21 @@ class ZITMasterPromptWorkstation:
         saved_caption_path = "DISABLED"
         if auto_save_caption:
             base_out = folder_paths.get_output_directory()
-            out_dir = Path(base_out) / cap_sub if cap_sub else Path(base_out)
-            out_dir.mkdir(parents=True, exist_ok=True)
-            caption_file = out_dir / f"{raw_tag}_{seed:012d}.txt"
+            cap_dir = Path(base_out) / cap_sub if cap_sub else Path(base_out)
+            cap_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Synchronize 1:1 with ComfyUI SaveImage counter naming (_00001_.txt)
+            _, filename, counter, _, _ = folder_paths.get_save_image_path(image_filename_prefix, base_out, 1024, 1024)
+            caption_file = cap_dir / f"{filename}_{counter:05}_.txt"
             caption_file.write_text(dataset_caption_txt, encoding="utf-8")
             saved_caption_path = str(caption_file)
 
         negative_prompt = (
+            "bystanders, extra people, crowd, pedestrians, background people, 2girls, 2women, multiple people, "
+            "photobomb, blurry figures in background, silhouette of person in background, other humans, extra faces, extra bodies, "
             "blurry, low quality, deformed anatomy, extra limbs, bad hands, mutated fingers, "
             "plastic skin, cartoon, anime, illustration, oversaturated, watermark, signature, duplicate, "
-            "round face, button nose, wide nose bridge, blonde hair, blue eyes"
+            "blonde hair, blue eyes, airbrushed, instagram filter, heavy makeup, contouring, cinematic color grading, dramatic shadows, glossy skin, plastic, extra limbs, bad anatomy, deformed"
         )
 
         telemetry_summary = (
@@ -1089,12 +1131,46 @@ class ZITMasterPromptWorkstation:
         )
 
 
+class ZITPromptModeSwitch:
+    """Prompt Mode Switch: Seamless toggle between Original Qwen+ZIT and Refactored Deterministic Suite."""
+
+    MODES = [
+        "1. 🧠 Original Qwen LLM + ZIT Master",
+        "2. ⚡ Refactored Deterministic Suite"
+    ]
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "mode": (cls.MODES, {"default": "1. 🧠 Original Qwen LLM + ZIT Master"}),
+            },
+            "optional": {
+                "qwen_zit_prompt": ("STRING", {"forceInput": True}),
+                "refactored_prompt": ("STRING", {"forceInput": True}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("active_prompt",)
+    FUNCTION = "select_prompt"
+    CATEGORY = UNIFIED_CATEGORY
+
+    def select_prompt(self, mode: str, qwen_zit_prompt: str = "", refactored_prompt: str = ""):
+        if "Refactored" in mode or "2." in mode:
+            chosen = refactored_prompt if refactored_prompt else qwen_zit_prompt
+        else:
+            chosen = qwen_zit_prompt if qwen_zit_prompt else refactored_prompt
+        return (chosen or "",)
+
+
 NODE_CLASS_MAPPINGS = {
     "ZITCharacterOverrideNode": ZITCharacterOverrideNode,
     "ZITBackgroundArchitectNode": ZITBackgroundArchitectNode,
     "VesperaCharacterEncoder": VesperaCharacterEncoder,
     "ZITDynamicWardrobeEngine": ZITDynamicWardrobeEngine,
-    "ZITMasterPromptWorkstation": ZITMasterPromptWorkstation
+    "ZITMasterPromptWorkstation": ZITMasterPromptWorkstation,
+    "ZITPromptModeSwitch": ZITPromptModeSwitch,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1102,5 +1178,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ZITBackgroundArchitectNode": "ZIT Background & Environment Architect",
     "VesperaCharacterEncoder": "Vespera Character Prompt Encoder",
     "ZITDynamicWardrobeEngine": "👗 ZIT Dynamic Wardrobe Engine",
-    "ZITMasterPromptWorkstation": "🍷 ZIT Master Prompt Workstation (All-In-One)"
+    "ZITMasterPromptWorkstation": "🍷 ZIT Master Prompt Workstation (All-In-One)",
+    "ZITPromptModeSwitch": "🔀 ZIT Prompt Mode Switch",
 }
