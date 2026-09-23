@@ -1,8 +1,12 @@
 """
 File    : wardrobe_node_refactor.py
-Purpose : Standalone Refactored Dynamic Wardrobe node — 270+ curated high-fashion outfits
+Purpose : Standalone Refactored Dynamic Wardrobe node -- 270+ curated high-fashion outfits
           across 10 distinct aesthetic tiers. Pure garment/attire tokens only.
           Zero character/body prompt bleed to guarantee pristine LoRA agnosticism.
+
+          active_tier_tag input enforces tier-coherent wardrobe behavior:
+            T2_ / anatomy -> yields "" (Workstation overrides with TIER2_INTIMATE_VAULT)
+            T1_ / closeup  -> filters to upper-body-visible categories only
 """
 
 import json
@@ -76,7 +80,15 @@ class RefactoredWardrobeNode:
     - Emits ONLY garment, fabric, footwear, and accessory tokens.
     - Zero human/body/character tokens, eliminating any conflict with PuLID or subject identity.
     - Master seed drives deterministic modulo selection across all categories.
+    - active_tier_tag: T2 yields blank (Workstation overrides with TIER2_INTIMATE_VAULT).
+                       T1 filters to upper-body-dominant categories.
     """
+
+    # Categories preferred for Tier 1 close-up / head-and-shoulders shots
+    T1_PREFERRED_CATEGORIES = [
+        "haute couture", "evening", "tailoring", "suiting", "business",
+        "casual", "knitwear", "boudoir", "lace", "lingerie", "intimat",
+    ]
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -87,6 +99,7 @@ class RefactoredWardrobeNode:
             },
             "optional": {
                 "custom_wardrobe_override": ("STRING", {"multiline": True, "default": "", "forceInput": True}),
+                "active_tier_tag":          ("STRING", {"default": "", "forceInput": True}),
             }
         }
 
@@ -95,18 +108,49 @@ class RefactoredWardrobeNode:
     FUNCTION     = "run"
     CATEGORY     = "ZIT/Dataset Workstation"
 
-    def run(self, master_seed: int, style_mode: str = "🎲 Dynamic / Random Style Sweep", custom_wardrobe_override: str = "", **kwargs):
+    def run(self, master_seed: int, style_mode: str = "🎲 Dynamic / Random Style Sweep",
+            custom_wardrobe_override: str = "", active_tier_tag: str = "", **kwargs):
+
         if custom_wardrobe_override and custom_wardrobe_override.strip():
             return (custom_wardrobe_override.strip(),)
 
-        vault = _load_vault()
+        # Tier 2: anatomy/body bake -- yield blank so Workstation forces TIER2_INTIMATE_VAULT
+        tag_lower = active_tier_tag.lower()
+        is_tier_2 = any(k in tag_lower for k in ["t2_", "tier 2", "anatomy", "t2 "])
+        is_tier_1 = any(k in tag_lower for k in ["t1_", "tier 1", "headshot", "closeup", "close-up", "macro", "t1 "])
+
+        if is_tier_2:
+            print("[WardrobeNode] T2 active: yielding blank, Workstation applies TIER2_INTIMATE_VAULT")
+            return ("",)
+
+        vault = WARDROBE_DATA
+        if not vault:
+            return ("wearing elegant black tailored ensemble, delicate silver accents",)
+
         if style_mode == "🎲 Dynamic / Random Style Sweep" or style_mode not in vault:
             categories = list(vault.keys())
-            cat_idx = (master_seed // 1000) % len(categories)
-            cat = categories[cat_idx]
+            if not categories:
+                return ("wearing elegant black tailored ensemble, delicate silver accents",)
+
+            if is_tier_1:
+                # Prefer upper-body-visible categories for close-up shots
+                preferred = [
+                    c for c in categories
+                    if any(kw in c.lower() for kw in self.T1_PREFERRED_CATEGORIES)
+                ]
+                pool = preferred if preferred else categories
+                print(f"[WardrobeNode] T1 filter: {len(pool)} upper-body categories in pool")
+            else:
+                pool = categories
+
+            cat_idx = master_seed % len(pool)
+            cat = pool[cat_idx]
         else:
             cat = style_mode
 
-        options = vault[cat]
+        options = vault.get(cat, [])
+        if not options:
+            return ("wearing elegant black tailored ensemble, delicate silver accents",)
+
         opt_idx = master_seed % len(options)
         return (options[opt_idx],)

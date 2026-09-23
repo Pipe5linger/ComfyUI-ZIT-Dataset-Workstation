@@ -1,284 +1,58 @@
-##### \# ComfyUI-ZIT-Dataset-Workstation
+# 🍷 ComfyUI Character Dataset & Master Prompt Workstation (ZIT Engine)
 
-##### 
+A comprehensive, all-in-one prompt engineering, zero-shot character override, and **automated 4-tier character LoRA dataset generation suite** for ComfyUI (optimized for Flux, Z-Image Turbo, and SDXL).
 
-##### A deterministic, procedural prompt-matrix engine and dataset curation pipeline for ComfyUI. Built specifically to eliminate \*\*angle collapse\*\*, \*\*wardrobe bleed\*\*, and \*\*token competition\*\* when generating character LoRA training datasets.
+---
 
-##### 
+## 🌟 What Sets This Node Apart?
+Most prompt generators produce chaotic or repetitive outputs that ruin LoRA training with **facial asymmetry, single-angle overfit, and clothing-to-skin fusion**. 
 
-##### \---
+This suite automates the **mathematically balanced 4-tier character dataset methodology** (50-image gold standard):
+1. **🎯 Tier 1: Identity Anchors (15 Images / 30%)** — Extreme face macros, ocular striations, authentic pores, and full 3D head rotation (Frontal, 3/4 Left, 3/4 Right, 90 deg Left Profile, 90 deg Right Profile, Dynamic Up/Down Tilts).
+2. **🔥 Tier 2: Raw Anatomy (10 Images / 20%)** — Nudity and micro-lingerie across medium and full-body shots to lock body proportions (e.g. 0.66 waist-to-hip ratio) and eliminate clothing-to-skin fusion.
+3. **👗 Tier 3: Wardrobe Agnosticism (15 Images / 30%)** — Cowboy (mid-thigh up) and seated shots across 9 distinct fashion tiers (Haute Couture, Velvet Gowns, Power Suits, Selvedge Denim & Leather, Liquid Latex, Cashmere, Robes) to teach the model that clothing is a temporary wrapper.
+4. **🌐 Tier 4: 3D Spatial Awareness (10 Images / 20%)** — Full-body head-to-toe, walking in mid-stride, crouching, and back-of-head shots showing hair volume to eliminate 'Instagram Model' rigidity.
+5. **👑 Master 50-Image Matrix** — Runs all 4 tiers in sequential order.
 
-##### 
+---
 
-##### \## The Problem with Traditional LoRA Datasets
+## 🚀 Key Features
 
-##### 
+* **Zero Hardcoded Batch Counts:** Run any batch size in ComfyUI (e.g. 5, 10, 15, 50, 100); the node dynamically cycles through the matrix via seed modulo without repeating patterns.
+* **Decoupled Director Camera Rigs & Optics:** Real lens physics (Arri Alexa 65 Anamorphic 50mm, Zeiss Master Prime 32mm, Leica 27mm, Hasselblad 80mm B&W) and masterclass lighting profiles (Roger Deakins, Gordon Willis, Stanley Kubrick, David Fincher, Wong Kar-wai).
+* **Smart Context Equalizer:** Enforces semantic harmony so outfits match appropriate environments (e.g. private boudoir vs. rainy Parisian noir street vs. minimal editorial studio).
+* **Decoupled Multi-Channel Outputs:** Connect individual channels (character_prompt, scene_prompt, master_fused_prompt, active_wardrobe_text, active_pose_text) to FaceDetailer, Regional Prompting, or Caption Savers.
+* **Zero VRAM Overhead:** 100% deterministic pure Python logic.
 
-##### Most character LoRAs suffer from predictable failure modes caused by unstructured dataset curation:
+---
 
-##### \* \*\*Angle \& Pose Collapse:\*\* Standard wildcards and random generation over-sample neutral, front-facing "mugshot" poses, leaving models unable to handle dynamic 3D angles, hard profiles, or vertical pitch.
+## 🛠️ How to Make It Your Own (Custom Character Integration)
 
-##### \* \*\*Wardrobe Bleed / Overfitting:\*\* When character tags are bound to clothing descriptions across a dataset, fine-tuning binds the character's physical identity to specific outfits.
+### Method 1: Using the custom_character_override Input Port (Recommended)
+1. Add a standard **Primitive (String)** or **Text Multiline** node to your canvas.
+2. Enter your character's physical baseline:
+   A hyper-realistic 35mm photo of Elena, a 28-year-old Scandinavian woman with high sculpted cheekbones, piercing ice-blue eyes, natural porcelain skin texture with authentic pores, and platinum blonde hair.
+3. Connect the string output to the **custom_character_override** input port on 🍷 ZIT Master Prompt Workstation.
+4. In the node dropdown, select ✍️ Custom Subject (Input Port).
+5. Select any **Tier (1, 2, 3, or 4)** or **👑 Full 50-Image Dataset Curated Matrix** and queue your batch!
 
-##### \* \*\*Asset Desynchronization:\*\* Managing hundreds of generated diffusion images alongside segmentation masks often leads to orphaned files, broken training pairs, and corrupted dataset ratios.
+### Method 2: Adding Your Character to the Code (zit_nodes.py)
+If you want your character baked into the dropdown menu:
+1. Open custom_nodes/ComfyUI-Vespera-ZIT/zit_nodes.py.
+2. Add your character's name to SUBJECT_MODES.
+3. Add your character description into VESPERA_VARIATIONS or define a new dictionary mapping.
 
-##### 
+---
 
-##### The \*\*ZIT Dataset Workstation\*\* solves this by enforcing a deterministic \*\*4-Tier Training Taxonomy\*\* coupled with automatic post-processing and mask-pairing utilities.
+## 📦 Installation & Setup
 
-##### 
+1. Clone or copy this repository into your ComfyUI custom nodes directory:
+   cd ComfyUI/custom_nodes
+   git clone https://github.com/your-username/ComfyUI-Character-Dataset-Workstation.git
+2. Restart ComfyUI.
+3. Search for **🍷 ZIT Master Prompt Workstation (All-In-One)** or **ZIT Character Override & Synthesizer** in the node menu.
 
-##### \---
+---
 
-##### 
-
-##### \## 4-Tier Dataset Matrix Architecture
-
-##### 
-
-##### The core engine structures prompt assembly across four balanced operational tiers to ensure complete geometric and semantic coverage:
-
-##### 
-
-##### ```text
-
-##### +-------------------------------------------------------------------------------+
-
-##### |                      ZIT DATASET MATRIX ENGINE PIPELINE                       |
-
-##### +-------------------------------------------------------------------------------+
-
-##### &#x20; \[Subject Trigger]     --> Dynamic User-Defined Physical Anchor
-
-##### &#x20;           +
-
-##### &#x20; \[4-Tier Anchor Matrix] --> Deterministic 3D Camera Rig / Pose / Angle
-
-##### &#x20;           +
-
-##### &#x20; \[Sensory Multipliers] --> Weathering, Optical Halation \& Tactile Physics
-
-##### &#x20;           +
-
-##### &#x20; \[Conflict Scrubber]   --> Automated Regex Filtering of Competing Tokens
-
-##### &#x20;           |
-
-##### &#x20;           v
-
-##### &#x20; \[Master Prompt \& Output Sync] --> KSampler / Automated Dataset Exporter
-
-##### 
-
-##### ```
-
-##### 
-
-##### | Tier | Focus | Target Composition | Key Objectives |
-
-##### | --- | --- | --- | --- |
-
-##### | \*\*Tier 1: Identity Anchors\*\* | 3D Head \& Neck Geometry | 75 Unique Slots | Extreme vertical pitch (looking up/down), 90° hard profiles, over-the-shoulder gaze, macro facial details. |
-
-##### | \*\*Tier 2: Raw Anatomy\*\* | Structural Proportions \& Skin | 50 Unique Slots | Subcutaneous realism, unblemished skin tension, strict anatomical ratios, zero clothing bias. |
-
-##### | \*\*Tier 3: Wardrobe Agnosticism\*\* | Fabric Decoupling | 75 Unique Slots | Diverse rotations across couture, casual, activewear, and lingerie to fully decouple identity from clothing. |
-
-##### | \*\*Tier 4: 3D Spatial Awareness\*\* | Environmental Integration | 50 Unique Slots | Wide focal depths, dynamic volumetric lighting, architectural integration, and atmospheric perspective. |
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## Repository Structure
-
-##### 
-
-##### ```text
-
-##### ComfyUI-ZIT-Dataset-Workstation/
-
-##### ├── \_\_init\_\_.py                  # ComfyUI custom node package loader
-
-##### ├── zit\_nodes.py                 # Core execution engine and node definitions
-
-##### ├── zit\_data.py                  # 4-Tier matrix vault and optical director rigs
-
-##### ├── organize\_lora\_dataset.py     # Pair validation, tier-renaming, and orphan quarantine
-
-##### ├── README.md                    # Documentation
-
-##### └── workflows/
-
-##### &#x20;   └── zit\_dataset\_template.json # Plug-and-play ComfyUI generation workflow
-
-##### 
-
-##### ```
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## Installation
-
-##### 
-
-##### 1\. Navigate to your ComfyUI `custom\\\\\\\_nodes` directory:
-
-##### ```bash
-
-##### cd ComfyUI/custom\_nodes
-
-##### 
-
-##### ```
-
-##### 
-
-##### 
-
-##### 2\. Clone the repository:
-
-##### ```bash
-
-##### git clone \[https://github.com/YourUsername/ComfyUI-ZIT-Dataset-Workstation.git](https://github.com/YourUsername/ComfyUI-ZIT-Dataset-Workstation.git)
-
-##### 
-
-##### ```
-
-##### 
-
-##### 
-
-##### 3\. Restart ComfyUI.
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## Quickstart Workflow
-
-##### 
-
-##### 1\. Open ComfyUI and load `workflows/zit\\\\\\\_dataset\\\\\\\_template.json`.
-
-##### 2\. Locate the \*\*ZIT Dataset Matrix Workstation\*\* node:
-
-##### \* Enter your character's primary \*\*Subject Trigger\*\* (e.g., `my\\\\\\\_character, 1girl`).
-
-##### \* Define your target \*\*Physical/Anatomical Markers\*\* (e.g., `detailed skin texture, athletic build`).
-
-##### \* Select your target generation \*\*Tier\*\* (Tiers 1–4).
-
-##### 
-
-##### 
-
-##### 3\. Queue your batch run. The workflow generates full-resolution renders and automatic black-and-white training masks via BiRefNet.
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## Automated Dataset Pairing \& Curation Utility
-
-##### 
-
-##### After generating your batches, run the included asset management script from your terminal:
-
-##### 
-
-##### ```bash
-
-##### python organize\_lora\_dataset.py
-
-##### 
-
-##### ```
-
-##### 
-
-##### \### What `organize\\\\\\\_lora\\\\\\\_dataset.py` Does:
-
-##### 
-
-##### \* \*\*Active Directory Introspection:\*\* Automatically scans whatever terminal directory or Desktop path you run it from.
-
-##### \* \*\*Strict Pair Enforcement:\*\* Matches every rendered image with its exact companion mask using sequential index tracking.
-
-##### \* \*\*Automatic Orphan Quarantine:\*\* If an image was deleted during visual culling, the script isolates the remaining orphan mask and moves it to `Desktop/orphans/` to prevent training corruption.
-
-##### \* \*\*Canonical Tier Renaming:\*\* Renames paired assets into standardized formats ready for OneTrainer or Kohya:
-
-##### ```text
-
-##### my\_character\_tier1\_anchor\_00001.png
-
-##### my\_character\_tier1\_anchor\_00001\_mask.png
-
-##### 
-
-##### ```
-
-##### 
-
-##### 
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## Roadmap \& Discussion
-
-##### 
-
-##### \* \[ ] External JSON/YAML config support for user-defined custom tier matrices.
-
-##### \* \[ ] Native OneTrainer / Kohya `.toml` metadata export integration.
-
-##### \* \[ ] Multi-subject interactive prompt conditioning.
-
-##### 
-
-##### \### Connect \& Collaborate
-
-##### 
-
-##### This architecture was designed to explore procedural dataset engineering and eliminate sample bias in local diffusion model training.
-
-##### 
-
-##### If you are working on fine-tuning pipelines, dataset optimization, or prompt matrix architectures, feel free to open an issue, submit a PR, or start a discussion on GitHub!
-
-##### 
-
-##### \---
-
-##### 
-
-##### \## License
-
-##### 
-
-##### MIT License. Free for personal and commercial fine-tuning pipelines.
-
-##### 
-
-##### ```
-
-##### 
-
-##### ```
-
+## ⚖️ License
+MIT License. Free for open-source AI community use and dataset curation pipelines.

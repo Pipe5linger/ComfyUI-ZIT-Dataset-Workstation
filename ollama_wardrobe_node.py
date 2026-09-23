@@ -3,12 +3,15 @@ File    : ollama_wardrobe_node.py
 Purpose : Ollama-powered Dynamic Wardrobe node for the Refactored pipeline.
           Calls a local Ollama endpoint with a tight system prompt to generate
           a cohesive fashion wardrobe description (top + bottom + shoes + accessories).
-          Immediately purges the model from VRAM after generation (keep_alive=0).
+          Auto-launches Ollama daemon if offline, enforces keep_alive=0, and sweeps VRAM.
           Falls back gracefully to the static wardrobe pool if Ollama is offline/timeout.
 """
 
+import os
 import json
 import random
+import time
+import subprocess
 import urllib.request
 import urllib.error
 
@@ -36,6 +39,7 @@ STYLE_OPTIONS = ["🎲 Dynamic / Random Style"] + list(FALLBACK_WARDROBES.keys()
 
 # ─────────────────────────── Ollama Config ───────────────────────────────────
 OLLAMA_URL  = "http://127.0.0.1:11434/api/generate"
+OLLAMA_BASE = "http://127.0.0.1:11434"
 TIMEOUT_SEC = 20
 
 SYSTEM_PROMPT = (
@@ -50,6 +54,42 @@ SYSTEM_PROMPT = (
 
 
 # ─────────────────────────── Ollama Helpers ──────────────────────────────────
+def _ensure_ollama_online(timeout_sec=4.0) -> bool:
+    """Checks if Ollama server is responsive. If offline, attempts to launch it."""
+    try:
+        req = urllib.request.Request(f"{OLLAMA_BASE}/api/tags", method="GET")
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            if resp.status == 200:
+                return True
+    except Exception:
+        pass
+
+    try:
+        creationflags = 0
+        if os.name == "nt":
+            creationflags = subprocess.CREATE_NO_WINDOW
+        subprocess.Popen(
+            ["ollama", "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            creationflags=creationflags
+        )
+        start_t = time.time()
+        while time.time() - start_t < timeout_sec:
+            time.sleep(0.5)
+            try:
+                req = urllib.request.Request(f"{OLLAMA_BASE}/api/tags", method="GET")
+                with urllib.request.urlopen(req, timeout=1.0) as resp:
+                    if resp.status == 200:
+                        return True
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return False
+
+
 def _purge_vram(model: str) -> None:
     """Force Ollama to unload the model from VRAM immediately (keep_alive=0)."""
     try:
@@ -63,18 +103,22 @@ def _purge_vram(model: str) -> None:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        urllib.request.urlopen(purge_req, timeout=5)
+        urllib.request.urlopen(purge_req, timeout=3)
     except Exception:
-        pass  # Silent — purge failure is non-critical
+        pass
 
 
 def _call_ollama(model: str, user_prompt: str) -> str | None:
+    if not _ensure_ollama_online(timeout_sec=3.0):
+        return None
+
     payload = json.dumps({
-        "model":  model,
-        "prompt": user_prompt,
-        "system": SYSTEM_PROMPT,
-        "stream": False,
-        "options": {"temperature": 0.9, "num_predict": 80},
+        "model":      model,
+        "prompt":     user_prompt,
+        "system":     SYSTEM_PROMPT,
+        "stream":     False,
+        "keep_alive": 0,
+        "options":    {"temperature": 0.9, "num_predict": 80},
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -106,6 +150,11 @@ class OllamaWardrobeNode:
     - ``style_mode`` locks to a specific aesthetic or lets the LLM choose freely.
     - ``master_seed`` drives deterministic fallback selection only.
     """
+
+    @classmethod
+    def IS_CHANGED(s, **kwargs):
+        # DEFECT 7 FIX: Ensure fresh generation across queue passes
+        return time.time_ns()
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -157,6 +206,6 @@ class OllamaWardrobeNode:
 
         # ── Fallback: deterministic static selection ──
         keys  = list(FALLBACK_WARDROBES.keys())
-        idx   = (master_seed // 3000) % len(keys)
+        idx   = master_seed % len(keys)
         style = keys[idx]
         return (FALLBACK_WARDROBES[style], "static-fallback")

@@ -13,3 +13,11 @@ orphans/
 Thumbs.db
 .vscode/
 .idea/
+*.bak*
+*.bak[0-9]*
+env.txt
+check_env.py
+check_mutator_csv.py
+dump_env.py
+zit_data_backup.md
+data/mutator_state.json

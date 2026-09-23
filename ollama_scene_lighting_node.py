@@ -3,11 +3,15 @@ File    : ollama_scene_lighting_node.py
 Purpose : Ollama-powered Scene & Lighting node for the Refactored pipeline.
           Hits a local Ollama endpoint with a tight 1-sentence prompt to generate
           a cinematic scene + lighting description.
+          Auto-launches Ollama daemon if offline, enforces keep_alive=0, and sweeps VRAM.
           Falls back gracefully to the static pool if Ollama is offline/timeout.
 """
 
+import os
 import json
 import random
+import time
+import subprocess
 import urllib.request
 import urllib.error
 
@@ -35,25 +39,85 @@ SCENE_OPTIONS = ["🎲 Dynamic / Random Scene"] + list(FALLBACK_SCENES.keys())
 
 # ─────────────────────────── Ollama Helper ───────────────────────────────────
 OLLAMA_URL  = "http://127.0.0.1:11434/api/generate"
+OLLAMA_BASE = "http://127.0.0.1:11434"
 TIMEOUT_SEC = 20
 
 SYSTEM_PROMPT = (
-    "You are a cinematic photography prompt writer. "
-    "Your ONLY job is to output a single comma-separated descriptive phrase "
-    "(15-30 words) describing a scene environment and its lighting for a fashion/portrait photograph. "
-    "Do NOT include any character description, clothing, or body parts. "
+    "You are an elite architectural and cinematic lighting director for high-fashion editorial photography. "
+    "Your ONLY job is to output a single comma-separated descriptive phrase (15-30 words) defining a vivid environment and its precise lighting physics. "
+    "Emphasize rich, realistic illumination: bright daylight sunbeams, soft studio softboxes, warm golden hour backlighting, rim highlights, specular reflections, or vibrant atmospheric glows. "
+    "Do NOT output completely pitch-black scenes or flat murky darkness. "
+    "Do NOT include character descriptions, clothing, faces, or body parts. "
     "Do NOT use bullet points, numbering, or quotation marks. "
     "Output ONLY the raw phrase with no preamble."
 )
 
 
+def _ensure_ollama_online(timeout_sec=4.0) -> bool:
+    """Checks if Ollama server is responsive. If offline, attempts to launch it."""
+    try:
+        req = urllib.request.Request(f"{OLLAMA_BASE}/api/tags", method="GET")
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            if resp.status == 200:
+                return True
+    except Exception:
+        pass
+
+    try:
+        creationflags = 0
+        if os.name == "nt":
+            creationflags = subprocess.CREATE_NO_WINDOW
+        subprocess.Popen(
+            ["ollama", "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            creationflags=creationflags
+        )
+        start_t = time.time()
+        while time.time() - start_t < timeout_sec:
+            time.sleep(0.5)
+            try:
+                req = urllib.request.Request(f"{OLLAMA_BASE}/api/tags", method="GET")
+                with urllib.request.urlopen(req, timeout=1.0) as resp:
+                    if resp.status == 200:
+                        return True
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return False
+
+
+def _purge_vram(model: str) -> None:
+    """Force Ollama to unload the model from VRAM immediately (keep_alive=0)."""
+    try:
+        purge_payload = json.dumps({
+            "model":      model,
+            "keep_alive": 0,
+        }).encode("utf-8")
+        purge_req = urllib.request.Request(
+            OLLAMA_URL,
+            data=purge_payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(purge_req, timeout=3)
+    except Exception:
+        pass
+
+
 def _call_ollama(model: str, user_prompt: str) -> str | None:
+    if not _ensure_ollama_online(timeout_sec=3.0):
+        return None
+
     payload = json.dumps({
-        "model":  model,
-        "prompt": user_prompt,
-        "system": SYSTEM_PROMPT,
-        "stream": False,
-        "options": {"temperature": 0.85, "num_predict": 80},
+        "model":      model,
+        "prompt":     user_prompt,
+        "system":     SYSTEM_PROMPT,
+        "stream":     False,
+        "keep_alive": 0,
+        "options":    {"temperature": 0.85, "num_predict": 80},
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -75,33 +139,21 @@ def _call_ollama(model: str, user_prompt: str) -> str | None:
     return result
 
 
-def _purge_vram(model: str) -> None:
-    """Force Ollama to unload the model from VRAM by sending keep_alive=0."""
-    try:
-        purge_payload = json.dumps({
-            "model":      model,
-            "keep_alive": 0,
-        }).encode("utf-8")
-        purge_req = urllib.request.Request(
-            OLLAMA_URL,
-            data=purge_payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        urllib.request.urlopen(purge_req, timeout=5)
-    except Exception:
-        pass  # Silent — purge failure is non-critical
-
-
 # ─────────────────────────── Node Class ──────────────────────────────────────
 class OllamaSceneLightingNode:
     """Ollama-powered Scene & Lighting generator.
 
     - Calls a local Ollama model with a tight system prompt.
     - Falls back to the static scene pool if Ollama is offline or times out.
+    - Zero VRAM residency: automatically purges model after invocation.
     - ``scene_mode`` allows locking to a specific environment or using dynamic generation.
     - ``master_seed`` is used ONLY for static-fallback determinism (ignored when LLM is live).
     """
+
+    @classmethod
+    def IS_CHANGED(s, **kwargs):
+        # DEFECT 7 FIX: Ensure fresh generation across queue passes
+        return time.time_ns()
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -153,7 +205,7 @@ class OllamaSceneLightingNode:
 
         # ── Fallback: deterministic static selection ──
         keys  = list(FALLBACK_SCENES.keys())
-        idx   = (master_seed // 5000) % len(keys)
+        idx   = master_seed % len(keys)
         env   = keys[idx]
         lighting = FALLBACK_SCENES[env]
         fallback_prompt = f"{env}, {lighting}"

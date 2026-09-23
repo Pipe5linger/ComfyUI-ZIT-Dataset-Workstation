@@ -1,0 +1,1029 @@
+{
+  "id": "vespera-zit-master-phase-canvas-v2",
+  "revision": 0,
+  "last_node_id": 100,
+  "last_link_id": 100,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        60,
+        120
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "z_image_turbo_bf16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        60,
+        250
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 0,
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_4b_fp8_mixed.safetensors",
+        "lumina2",
+        "default"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [
+        60,
+        410
+      ],
+      "size": [
+        320,
+        70
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "DoRA Power LoRA Loader",
+      "pos": [
+        420,
+        120
+      ],
+      "size": [
+        380,
+        930
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            4
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            5,
+            6
+          ]
+        }
+      ],
+      "title": "\u26a1 DoRA Dynamic Power LoRA Loader (5-LoRA Stack)",
+      "properties": {
+        "Node name for S&R": "DoRA Power LoRA Loader",
+        "dora_power_lora": {
+          "rows": [
+            {
+              "enabled": true,
+              "name": "Ves_ZIT_best_try_yet_V4.safetensors",
+              "strengthModel": 1.05,
+              "strengthClip": 1.05
+            },
+            {
+              "enabled": true,
+              "name": "AntiPlastic_AnalogTexture_v1.safetensors",
+              "strengthModel": 0.2,
+              "strengthClip": 0.2
+            },
+            {
+              "enabled": true,
+              "name": "Z-Image Turbo Radiant v2.0.safetensors",
+              "strengthModel": 0.2,
+              "strengthClip": 0.2
+            },
+            {
+              "enabled": true,
+              "name": "Z-Detail-Slider.safetensors",
+              "strengthModel": 0.25,
+              "strengthClip": 0.25
+            },
+            {
+              "enabled": true,
+              "name": "afterdark_v2.safetensors",
+              "strengthModel": 0.2,
+              "strengthClip": 0.2
+            }
+          ],
+          "globals": {
+            "stack_enabled": true,
+            "verbose": false,
+            "log_unloaded_keys": false,
+            "broadcast_modulations": true,
+            "broadcast_auto_scale": true,
+            "broadcast_scale": 1.0,
+            "broadcast_include_dora_scale": false,
+            "auto_strength_enabled": false,
+            "auto_strength_device": "gpu",
+            "auto_strength_ratio_floor": 0.3,
+            "auto_strength_ratio_ceiling": 3.0,
+            "dora_decompose_debug": false,
+            "dora_slice_fix": true,
+            "dora_adaln_swap_fix": true,
+            "zimage_lumina2_compat": true
+          }
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 90,
+      "type": "PrimitiveNode",
+      "pos": [
+        840,
+        120
+      ],
+      "size": [
+        360,
+        90
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "slot_index": 0,
+          "links": [
+            11,
+            14,
+            15
+          ]
+        }
+      ],
+      "title": "\ud83c\udfb2 MASTER SWEEP SEED",
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        0,
+        "increment"
+      ]
+    },
+    {
+      "id": 92,
+      "type": "RefactoredPoseActionNode",
+      "pos": [
+        440,
+        250
+      ],
+      "size": [
+        360,
+        200
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "master_seed",
+          "type": "INT",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pose_prompt",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": [
+            25
+          ]
+        },
+        {
+          "name": "active_tier_tag",
+          "type": "STRING",
+          "slot_index": 1,
+          "links": [
+            26
+          ]
+        },
+        {
+          "name": "camera_framing",
+          "type": "STRING",
+          "slot_index": 2,
+          "links": null
+        }
+      ],
+      "title": "\ud83e\uddd8 Pose & Action (50 Poses)",
+      "properties": {
+        "Node name for S&R": "RefactoredPoseActionNode"
+      },
+      "widgets_values": [
+        0,
+        "\ud83d\udd04 Full Master Sweep (1 Round: Tier 1 to Tier 4 - 50 Poses)"
+      ]
+    },
+    {
+      "id": 99,
+      "type": "OllamaCoherentPromptNode",
+      "pos": [
+        840,
+        250
+      ],
+      "size": [
+        380,
+        230
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "master_seed",
+          "type": "INT",
+          "link": 11
+        },
+        {
+          "name": "active_tier_tag",
+          "type": "STRING",
+          "link": 26
+        },
+        {
+          "name": "pose_override",
+          "type": "STRING",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pose_prompt",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": [
+            21
+          ]
+        },
+        {
+          "name": "wardrobe_prompt",
+          "type": "STRING",
+          "slot_index": 1,
+          "links": [
+            23
+          ]
+        },
+        {
+          "name": "scene_lighting_prompt",
+          "type": "STRING",
+          "slot_index": 2,
+          "links": [
+            24
+          ]
+        },
+        {
+          "name": "active_tier_tag",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": [
+            22
+          ]
+        },
+        {
+          "name": "source",
+          "type": "STRING",
+          "slot_index": 4,
+          "links": null
+        }
+      ],
+      "title": "\ud83d\udc51 Coherent Prompt Matrix (Ollama LLM)",
+      "properties": {
+        "Node name for S&R": "OllamaCoherentPromptNode"
+      },
+      "widgets_values": [
+        0,
+        "qwen2.5:7b-instruct",
+        "dolphin-llama3:latest"
+      ]
+    },
+    {
+      "id": 88,
+      "type": "RefactoredPromptWorkstation",
+      "pos": [
+        1240,
+        120
+      ],
+      "size": [
+        380,
+        520
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pose_prompt",
+          "type": "STRING",
+          "link": 21
+        },
+        {
+          "name": "active_tier_tag",
+          "type": "STRING",
+          "link": 22
+        },
+        {
+          "name": "wardrobe_prompt",
+          "type": "STRING",
+          "link": 23
+        },
+        {
+          "name": "scene_lighting_prompt",
+          "type": "STRING",
+          "link": 24
+        },
+        {
+          "name": "master_seed",
+          "type": "INT",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "fused_prompt",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": [
+            31
+          ]
+        },
+        {
+          "name": "negative_prompt",
+          "type": "STRING",
+          "slot_index": 1,
+          "links": [
+            32
+          ]
+        }
+      ],
+      "title": "\ud83d\udc51 Sanitized Prompt Workstation (Pure Trigger)",
+      "properties": {
+        "Node name for S&R": "RefactoredPromptWorkstation"
+      },
+      "widgets_values": [
+        0,
+        "photo of vespera, 8k",
+        "\ud83c\udfb2 Dynamic Rotation",
+        "\ud83c\udfb2 Dynamic Rotation",
+        "\ud83c\udfb2 Dynamic Rotation",
+        "",
+        "blurry, out of focus, low quality, deformed, extra limbs, bad anatomy, bad hands, missing fingers, plastic smooth skin, oversaturated, cartoon, 3d render, illustration, blonde hair, blue eyes, Asian, pale white skin, tattoo, piercing, straight flat hair, studio lighting equipment, softbox"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1660,
+        120
+      ],
+      "size": [
+        380,
+        160
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 5
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            41
+          ]
+        }
+      ],
+      "title": "Positive Conditioning",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1660,
+        320
+      ],
+      "size": [
+        380,
+        140
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 6
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            42
+          ]
+        }
+      ],
+      "title": "Negative Conditioning",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 7,
+      "type": "EmptySD3LatentImage",
+      "pos": [
+        1660,
+        500
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            43
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptySD3LatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 50,
+      "type": "PerturbedAttentionGuidance",
+      "pos": [
+        1660,
+        660
+      ],
+      "size": [
+        310,
+        80
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            44
+          ]
+        }
+      ],
+      "title": "\u26a1 Perturbed Attention Guidance (PAG)",
+      "properties": {
+        "Node name for S&R": "PerturbedAttentionGuidance"
+      },
+      "widgets_values": [
+        0.25
+      ]
+    },
+    {
+      "id": 55,
+      "type": "ExecutionWatchdogNode",
+      "pos": [
+        1660,
+        780
+      ],
+      "size": [
+        280,
+        160
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 44
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            45
+          ]
+        }
+      ],
+      "title": "\ud83d\udc51 Execution Watchdog & Kill Order",
+      "properties": {
+        "Node name for S&R": "ExecutionWatchdogNode"
+      },
+      "widgets_values": [
+        true,
+        45.0,
+        true
+      ]
+    },
+    {
+      "id": 8,
+      "type": "KSampler",
+      "pos": [
+        2080,
+        120
+      ],
+      "size": [
+        340,
+        480
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 45
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 41
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 42
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 43
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "link": 15
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            51
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        0,
+        "randomize",
+        8,
+        1.0,
+        "euler",
+        "FlowMatchEulerDiscreteScheduler",
+        1.0
+      ]
+    },
+    {
+      "id": 9,
+      "type": "VAEDecode",
+      "pos": [
+        2080,
+        640
+      ],
+      "size": [
+        230,
+        60
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 51
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            61
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 10,
+      "type": "SaveImage",
+      "pos": [
+        2380,
+        120
+      ],
+      "size": [
+        360,
+        480
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 61
+        }
+      ],
+      "outputs": [],
+      "title": "\ud83c\udfc6 Master Dataset Output (Pure LoRA Native)",
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "Ves_Phase2_Master_Renders"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      4,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      2,
+      0,
+      4,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      3,
+      0,
+      9,
+      1,
+      "VAE"
+    ],
+    [
+      4,
+      4,
+      0,
+      50,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      4,
+      1,
+      5,
+      0,
+      "CLIP"
+    ],
+    [
+      6,
+      4,
+      1,
+      6,
+      0,
+      "CLIP"
+    ],
+    [
+      11,
+      90,
+      0,
+      99,
+      0,
+      "INT"
+    ],
+    [
+      12,
+      90,
+      0,
+      92,
+      0,
+      "INT"
+    ],
+    [
+      14,
+      90,
+      0,
+      88,
+      4,
+      "INT"
+    ],
+    [
+      15,
+      90,
+      0,
+      8,
+      4,
+      "INT"
+    ],
+    [
+      21,
+      99,
+      0,
+      88,
+      0,
+      "STRING"
+    ],
+    [
+      22,
+      99,
+      3,
+      88,
+      1,
+      "STRING"
+    ],
+    [
+      23,
+      99,
+      1,
+      88,
+      2,
+      "STRING"
+    ],
+    [
+      24,
+      99,
+      2,
+      88,
+      3,
+      "STRING"
+    ],
+    [
+      25,
+      92,
+      0,
+      99,
+      2,
+      "STRING"
+    ],
+    [
+      26,
+      92,
+      1,
+      99,
+      1,
+      "STRING"
+    ],
+    [
+      31,
+      88,
+      0,
+      5,
+      1,
+      "STRING"
+    ],
+    [
+      32,
+      88,
+      1,
+      6,
+      1,
+      "STRING"
+    ],
+    [
+      41,
+      5,
+      0,
+      8,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      42,
+      6,
+      0,
+      8,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      43,
+      7,
+      0,
+      8,
+      3,
+      "LATENT"
+    ],
+    [
+      44,
+      50,
+      0,
+      55,
+      0,
+      "MODEL"
+    ],
+    [
+      45,
+      55,
+      0,
+      8,
+      0,
+      "MODEL"
+    ],
+    [
+      51,
+      8,
+      0,
+      9,
+      0,
+      "LATENT"
+    ],
+    [
+      61,
+      9,
+      0,
+      10,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "\ud83d\udd35 GROUP 1: PHASE 1 (ZIT LOADERS & 5-LORA POWER STACK)",
+      "bounding": [
+        20,
+        40,
+        790,
+        1030
+      ],
+      "color": "#1f618d",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "\ud83d\udfe2 GROUP 2: PHASE 2 (4-TIER PROCEDURAL MATRIX & FAST ZIT DIFFUSION)",
+      "bounding": [
+        820,
+        40,
+        2760,
+        1030
+      ],
+      "color": "#117a65",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.55,
+      "offset": [
+        -200,
+        200
+      ]
+    }
+  },
+  "version": 0.4
+}
